@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://unpkg.com/maplibre-gl@2.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@2.1.0/dist/maplibre-gl.js"></script>
+    <!--  Don't forget to replace YOUR_ACCESS_TOKEN by your real access token ! -->
+    <script src="https://api.jawg.io/libraries/jawg-places@latest/jawg-places.js?access-token=YOUR_ACCESS_TOKEN"></script>
+  </head>
+  <body>
+    <main>
+      <section id="side-panel"></section>
+      <div id="map"></div>
+    </main>
+    <script>
+      // Don't forget to replace YOUR_ACCESS_TOKEN by your real access token !
+      const accessToken = 'YOUR_ACCESS_TOKEN';
+      // With this example, you can connect a backend that returns GeoJSON or use a file that will have all your points. Turn this const to true and see where it's used.
+      const DYNAMIC_DATA_SOURCE = false;
+      // The Map object represents the map on your page. It exposes methods and properties that enable you to programmatically change the map, and fires events as users interact with it.
+      const map = new maplibregl.Map({
+        // The HTML element in which MapLibre GL JS will render the map, or the element's string id . The specified element must have no children.
+        container: 'map',
+        // The map's MapLibre style. This must be an a JSON object conforming to the schema described in the MapLibre Style Specification , or a URL to such JSON.
+        style: `https://api.jawg.io/styles/jawg-sunny.json?access-token=${accessToken}`,
+        // The initial zoom level of the map.
+        zoom: 10,
+        // The initial geographical centerpoint of the map.
+        center: [2.3488, 48.8534],
+        // Add the map's position (zoom, center latitude, center longitude, bearing, and pitch) will be synced with the hash fragment of the page's URL. For example, http://127.0.0.1/index.html#2.59/39.26/53.07/-24.1/60.
+        hash: true,
+        // Disable map's pitch (tilt) control with "drag to rotate" interaction.
+        pitchWithRotate: false,
+        // Disable the "drag to rotate" interaction.
+        dragRotate: false,
+      })
+        // Add navigation control that contains zoom buttons without compass.
+        .addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+        // Add autocomplete control that uses autocomplete
+        .addControl(new JawgPlaces.MapLibre({ searchOnTyping: true }));
+
+      // This plugin is used for right to left languages
+      maplibregl.setRTLTextPlugin('https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js');
+
+      function onHover(e) {
+        const id = e.target.getAttribute('feature-id');
+        if (e.type === 'mouseenter' && !isNaN(id)) {
+          // We increase the hovered feature text size.
+          map.setLayoutProperty('booking-map-layer', 'text-size', ['match', ['id'], parseInt(id), 20, 14]);
+        } else {
+          // reset text layer size
+          map.setLayoutProperty('booking-map-layer', 'text-size', 14);
+        }
+      }
+
+      // Build popup and side panel card. This is pure HTML but you can use your own frontend library like react.
+      function buildDetaitHtml(feature, classNames, addListener) {
+        const { properties } = feature;
+        return `
+  <div class="${classNames || ''}" feature-id="${properties.id}" ${
+          addListener && `onmouseenter="onHover(event)" onmouseleave="onHover(event)"`
+        }>
+    <div class="popup-image"  style="">
+      <a href="#feature-${properties.id}">
+        <img src="${properties.image}">
+      </a>
+    </div>
+    <div class="popup-content">
+      <div class="popup-header">
+        <span class="popup-title">
+          ${properties.title}
+        </span>
+        <span class="popup-rating">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" style="display: block; fill: currentcolor;"><path d="M15.094 1.579l-4.124 8.885-9.86 1.27a1 1 0 0 0-.542 1.736l7.293 6.565-1.965 9.852a1 1 0 0 0 1.483 1.061L16 25.951l8.625 4.997a1 1 0 0 0 1.482-1.06l-1.965-9.853 7.293-6.565a1 1 0 0 0-.541-1.735l-9.86-1.271-4.127-8.885a1 1 0 0 0-1.814 0z" fill-rule="evenodd"></path></svg>
+          ${properties.rating ? `${properties.rating} (${properties.reviewsCount})` : `New`}
+        </span>
+      </div>
+      <div class="popup-grey">${properties.name}</div>
+      <div>
+        <span class="popup-price">${properties.price}</span>
+        <span>${properties.priceQualifer}</span>
+        <span class="popup-grey"> · ${properties.dates}</span>
+      </div>
+    </div>
+  </div>`;
+      }
+
+      // Fired immediately after all necessary resources have been downloaded and the first visually complete rendering of the map has occurred.
+      map.on('load', async () => {
+        let featureId;
+        let popup;
+
+        // Update the side panel with some features.
+        const updateSidePanel = (features) => {
+          const cards = features.map((feature) => buildDetaitHtml(feature, 'side-panel-card', true));
+          // Edit the content of the side panel and add cards or error message
+          document.getElementById('side-panel').innerHTML =
+            cards.length > 0
+              ? `<div class="side-panel-cards">${cards.join('')}</div>`
+              : '<div class="empty-list">We did not find any results in this area.</div>';
+        };
+
+        // Only used when DYNAMIC_DATA_SOURCE == true. You should update the endpoint part and set your own.
+        const dynamicSourceUpdateCallback = async () => {
+          const bbox = map.getBounds();
+          const endpoint = `./booking-map-data.geojson?north=${bbox.getNorth()}&east=${bbox.getEast()}&south=${bbox.getSouth()}&west=${bbox.getWest()}`;
+          const featureCollection = await fetch(endpoint).then((resp) => resp.json());
+          // Returns the source with the specified ID in the map's style and set new data.
+          map.getSource('booking-map-source').setData(featureCollection);
+          updateSidePanel(featureCollection.features);
+        };
+
+        // Only used when DYNAMIC_DATA_SOURCE == false.
+        const staticSourceCallback = () => {
+          // Returns an array of GeoJSONFeature objects representing visible features in this view from the layer booking-map-layer.
+          const features = map.queryRenderedFeatures({ layers: ['booking-map-layer'] });
+          updateSidePanel(features);
+        };
+
+        // Fired just after the map completes a transition from one view to another, as the result of either user interaction or methods such as Map#jumpTo.
+        map.on('moveend', DYNAMIC_DATA_SOURCE ? dynamicSourceUpdateCallback : staticSourceCallback);
+
+        // Fired only once after the last frame rendered before the map enters an "idle" state:
+        map.once('idle', DYNAMIC_DATA_SOURCE ? dynamicSourceUpdateCallback : staticSourceCallback);
+
+        // Adds a source to the map's style. This contains your points.
+        map.addSource('booking-map-source', {
+          type: 'geojson',
+          // When we load the source dynamicaly, the default data should be an empty feature collection.
+          data: DYNAMIC_DATA_SOURCE ? { type: 'FeatureCollection', features: [] } : 'booking-map-data.geojson',
+        });
+
+        // Load an image from an external URL to be used with Map#addImage. External domains must support CORS.
+        map.loadImage('booking-map-selected.png', (error, image) => {
+          if (error) throw error;
+          // Add an image to the style. This image can be displayed on the map like any other icon in the style's sprite using the image's ID with icon-image, background-pattern, fill-pattern, or line-pattern. A Map.event:error event will be fired if there is not enough space in the sprite to add this image.
+          map.addImage('booking-map-selected', image);
+        });
+        // Load an image from an external URL to be used with Map#addImage. External domains must support CORS.
+        map.loadImage('booking-map-default.png', function (error, image) {
+          if (error) throw error;
+          // Add an image to the style. This image can be displayed on the map like any other icon in the style's sprite using the image's ID with icon-image, background-pattern, fill-pattern, or line-pattern. A Map.event:error event will be fired if there is not enough space in the sprite to add this image.
+          map.addImage('booking-map-default', image);
+
+          // Add layer to map, using your geojson as source
+          map.addLayer({
+            id: 'booking-map-layer',
+            type: 'symbol',
+            source: 'booking-map-source',
+            paint: {
+              'text-color': '#000',
+            },
+            layout: {
+              'icon-image': 'booking-map-default',
+              'icon-anchor': 'center',
+              'icon-text-fit': 'both',
+              'icon-text-fit-padding': [5, 10, 5, 10],
+              'text-field': ['get', 'price'],
+              'text-font': ['Open Sans Bold'],
+              'text-size': 14,
+            },
+          });
+        });
+
+        // Fired when a pointing device (usually a mouse) is pressed and released at the same point on the map.
+        map.on('click', 'booking-map-layer', (e) => {
+          // Returns the first GeoJSONFeature objects representing visible features from the layer booking-map-layer.
+          const feature = map.queryRenderedFeatures(e.point, { layers: ['booking-map-layer'] }).shift();
+          if (!feature || feature.id === featureId) return;
+          featureId = feature.id;
+          popup = new maplibregl.Popup({
+            // A string that sets the CSS property of the popup's maximum width, eg '300px' . To ensure the popup resizes to fit its content, set this property to 'none'
+            maxWidth: '324px',
+            // A pixel offset applied to the popup's location specifying a distance from the popup's location
+            offset: 15,
+            // A string indicating the part of the Popup that should be positioned closest to the coordinate set via Popup#setLngLat
+            anchor: 'bottom',
+          })
+            // Sets the geographical location of the popup's anchor, and moves the popup to it.
+            .setLngLat(feature.geometry.coordinates)
+            // Sets the popup's content to the HTML provided as a string. This method does not perform HTML filtering or sanitization, and must be used only with trusted content.
+            .setHTML(buildDetaitHtml(feature))
+            // Fired when the popup is opened manually or programatically.
+            .on('open', () => {
+              // Sets the value of a layout property in the specified style layer. We change the selected feature icon.
+              map.setLayoutProperty('booking-map-layer', 'icon-image', [
+                'match',
+                ['id'],
+                feature.id,
+                'booking-map-selected',
+                'booking-map-default',
+              ]);
+              // Sets the value of a paint property in the specified style layer. We change the selected feature color.
+              map.setPaintProperty('booking-map-layer', 'text-color', [
+                'match',
+                ['id'],
+                feature.id,
+                '#ffffff',
+                '#222',
+              ]);
+            })
+            //Fired when the popup is closed manually or programatically.
+            .on('close', () => {
+              // Reset properties only when the popup is closed
+              if (!popup.isOpen()) {
+                map.setLayoutProperty('booking-map-layer', 'icon-image', 'booking-map-default');
+                map.setPaintProperty('booking-map-layer', 'text-color', '#222');
+                featureId = 0;
+              }
+            })
+            .addTo(map);
+        });
+
+        // Fired when a pointing device (usually a mouse) enters a visible portion of a specified layer from outside that layer or outside the map canvas.
+        map.on('mouseenter', 'booking-map-layer', (e) => {
+          // Returns the first GeoJSONFeature objects representing visible features from the layer booking-map-layer.
+          const feature = map.queryRenderedFeatures(e.point, { layers: ['booking-map-layer'] }).shift();
+          // Returns the map's <canvas> element.
+          map.getCanvas().style.cursor = 'pointer';
+          // We increase the hovered feature text size.
+          feature &&
+            map.setLayoutProperty('booking-map-layer', 'text-size', ['match', ['id'], feature.id, 20, 14]);
+        });
+
+        // Fired when a pointing device (usually a mouse) leaves a visible portion of a specified layer, or leaves the map canvas.
+        map.on('mouseleave', 'booking-map-layer', () => {
+          // Returns the map's <canvas> element.
+          map.getCanvas().style.cursor = '';
+          // We reset the feature text size.
+          map.setLayoutProperty('booking-map-layer', 'text-size', 14);
+        });
+      });
+    </script>
+  </body>
+</html>

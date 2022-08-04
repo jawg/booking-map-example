@@ -1,0 +1,177 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Oxygen, BlinkMacSystemFont, -apple-system, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  letter-spacing: 0.03em;
+}
+
+*, ::after, ::after {
+  box-sizing: border-box;
+}
+
+#map {
+  min-height: 500px;
+  height: 100%;
+  width: 100%;
+}
+
+.maplibregl-popup {
+  line-height: 19px;
+  font-size: 15px;
+}
+
+.maplibregl-popup-content {
+  border-radius: 12px;
+  padding: 0;
+}
+
+.maplibregl-popup-close-button {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  border: none;
+  font-size: 20px;
+  margin: 10px;
+  color: white;
+  width: 25px;
+  height: 25px;
+}
+
+.maplibregl-popup-close-button:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.maplibregl-ctrl-top-left .maplibregl-ctrl {
+  margin: 24px 0 0 24px;
+}
+
+.maplibregl-ctrl-group:not(:empty) {
+  box-shadow: rgb(0 0 0 / 12%) 0px 6px 16px;
+  border-radius: 8px;
+}
+.maplibregl-ctrl-group button {
+  width: 40px;
+  height: 40px;
+  font-size: 25px;
+}
+
+.maplibregl-popup-content .popup-image {
+  aspect-ratio: 53/35;
+}
+
+.side-panel-card .popup-image {
+  aspect-ratio: 1/1;
+}
+
+.maplibregl-popup-content .popup-image img,
+.side-panel-card .popup-image img {
+  border-radius: 12px 12px 0 0;
+  object-fit: cover;
+  vertical-align: bottom;
+  aspect-ratio: 53/35;
+  width: 100%;
+  height: 100%;
+}
+
+.side-panel-card .popup-image img {
+  border-radius: 12px;
+  aspect-ratio: 1/1;
+}
+
+.maplibregl-popup-content .popup-content,
+.side-panel-card .popup-content {
+  padding: 16px;
+}
+
+.maplibregl-popup-content .popup-content .popup-header,
+.side-panel-card .popup-content .popup-header {
+  display: flex;
+}
+
+.maplibregl-popup-content .popup-content .popup-header .popup-title,
+.side-panel-card .popup-content .popup-header .popup-title {
+  flex: 1;
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.maplibregl-popup-content .popup-content .popup-header .popup-rating,
+.side-panel-card .popup-content .popup-header .popup-rating {
+  display: flex;
+  align-items: center;
+  flex-grow: 0;
+}
+
+.maplibregl-popup-content .popup-content .popup-header .popup-rating *,
+.side-panel-card .popup-content .popup-header .popup-rating * {
+  align-self: center;
+}
+
+.maplibregl-popup-content .popup-content .popup-header .popup-rating svg,
+.side-panel-card .popup-content .popup-header .popup-rating svg {
+  padding-right: 5px;
+  width: 18px;
+  height: 18px;
+}
+
+.maplibregl-popup-content .popup-content .popup-grey,
+.side-panel-card .popup-content .popup-grey {
+  color: #999;
+}
+
+.maplibregl-popup-content .popup-content .popup-price,
+.side-panel-card .popup-content .popup-price {
+  font-weight: 600;
+}
+
+.maplibregl-ctrl-top-right .maplibregl-ctrl {
+  margin: 24px 24px 0 0;
+}
+
+.jawg-places-map input {
+  box-shadow: rgb(0 0 0 / 12%) 0px 6px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+main {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: row;
+}
+
+#side-panel {
+  width: 800px;
+  overflow-y: auto;
+  display: flex;
+}
+#side-panel > .side-panel-cards {
+  display: flex;
+  padding: 18px 6px;
+  flex-wrap: wrap;
+  align-self: flex-start;
+}
+
+#side-panel > .empty-list {
+  margin: auto;
+  font-size: 24px;
+}
+
+@media (max-width: 800px) {
+  #side-panel {
+    display: none;
+  }
+}
+
+#side-panel .side-panel-card {
+  max-width: 100%;
+  flex: 0 0 auto;
+  width: 50%;
+  padding: 12px;
+}
