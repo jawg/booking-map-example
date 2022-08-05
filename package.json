@@ -1,0 +1,26 @@
+{
+  "name": "booking-map-example",
+  "version": "1.0.0",
+  "description": "This project is a part of our use case showcase.",
+  "scripts": {
+    "start": "rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jawg/booking-map-example.git"
+  },
+  "author": "Jawg Maps",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jawg/booking-map-example/issues"
+  },
+  "homepage": "https://github.com/jawg/booking-map-example#readme",
+  "devDependencies": {
+    "@web/rollup-plugin-html": "^1.10.3",
+    "rollup": "^2.77.2",
+    "rollup-plugin-app-utils": "^1.0.6",
+    "rollup-plugin-dotenv": "^0.3.0",
+    "rollup-plugin-serve": "^2.0.0"
+  }
+}
