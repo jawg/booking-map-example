@@ -146,11 +146,18 @@ main {
   flex-direction: row;
 }
 
-#side-panel {
+section {
   width: 800px;
   overflow-y: auto;
   display: flex;
+  flex-direction: column;
 }
+
+#side-panel {
+  display: flex;
+  flex: 1 0 auto;
+}
+
 #side-panel > .side-panel-cards {
   display: flex;
   padding: 18px 6px;
@@ -174,4 +181,23 @@ main {
   flex: 0 0 auto;
   width: 50%;
   padding: 12px;
+}
+
+.attributions {
+  text-align: center;
+}
+
+.attributions > * {
+  margin: 0.5em 0;
+}
+
+.attributions a {
+  color: #0094ff;
+}
+
+.github-project {
+  position: fixed;
+  bottom: 2em;
+  right: 1em;
+  z-index: 2;
 }
